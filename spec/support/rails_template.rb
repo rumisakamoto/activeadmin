@@ -91,6 +91,15 @@ create_file 'app/models/category.rb', <<-RUBY.strip_heredoc, force: true
   end
 RUBY
 
+generate :model, 'news name:string description:text'
+create_file 'app/models/news.rb', <<-RUBY.strip_heredoc, force: true
+  class News < ActiveRecord::Base
+    unless Rails::VERSION::MAJOR > 3 && !defined? ProtectedAttributes
+      attr_accessible :name, :description
+    end
+  end
+RUBY
+
 generate :model, 'store name:string'
 
 # Generate a model with string ids

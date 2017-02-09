@@ -1,8 +1,15 @@
 apply File.expand_path("../rails_template.rb", __FILE__)
 
-%w{Post User Category}.each do |type|
+%w{Post User Category News}.each do |type|
   generate :'active_admin:resource', type
 end
+
+inject_into_file 'app/admin/news.rb', <<-RUBY, after: "ActiveAdmin.register News do\n"
+
+  if Rails::VERSION::MAJOR >= 4
+    permit_params [:name, :description]
+  end
+RUBY
 
 inject_into_file 'app/admin/category.rb', <<-RUBY, after: "ActiveAdmin.register Category do\n"
 
