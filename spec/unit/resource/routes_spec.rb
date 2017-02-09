@@ -103,23 +103,45 @@ module ActiveAdmin
       end
 
       context "for batch_action handler" do
-        let! :config do
-          ActiveAdmin.register Post do
-            belongs_to :category
+
+        context "when register a singular resource" do
+
+          let! :config do
+            ActiveAdmin.register Post do
+              belongs_to :category
+            end
+          end
+
+          before do
+            config.batch_actions = true
+            reload_routes!
+          end
+
+          it "should include :scope and :q params" do
+            params = { category_id: 1, q: { name_equals: "Any" }, scope: :all }
+            additional_params = { locale: 'en' }
+            batch_action_path = "/admin/categories/1/posts/batch_action?locale=en&q%5Bname_equals%5D=Any&scope=all"
+
+            expect(config.route_batch_action_path(params, additional_params)).to eq batch_action_path
           end
         end
 
-        before do
-          config.batch_actions= true
-          reload_routes!
-        end
+        context "when registering a plural resource" do
 
-        it "should include :scope and :q params" do
-          params = { category_id: 1, q: { name_equals: "Any" }, scope: :all }
-          additional_params = { locale: 'en' }
-          batch_action_path = "/admin/categories/1/posts/batch_action?locale=en&q%5Bname_equals%5D=Any&scope=all"
+          class ::News; def self.has_many(*); end end
+          let! :config { ActiveAdmin.register News }
 
-          expect(config.route_batch_action_path(params, additional_params)).to eq batch_action_path
+          before do
+            config.batch_actions = true
+            reload_routes!
+          end
+
+          it "should return the plural batch action route with _index and given params" do
+            params = { q: { name_equals: "Any" }, scope: :all }
+            additional_params = { locale: 'en' }
+            batch_action_path = "/admin/news/batch_action?locale=en&q%5Bname_equals%5D=Any&scope=all"
+            expect(config.route_batch_action_path(params, additional_params)).to eq batch_action_path
+          end
         end
       end
     end
